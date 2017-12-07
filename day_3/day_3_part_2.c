@@ -39,6 +39,19 @@ int status = REGULAR;
 	
 void move(){
 	switch(status){
+		
+	/* Thinking of this: where x (mid_right) is next to be calculated
+		origin is always to the left
+	            _ _	
+	   top_left|_|_|
+	   mid_left|_|x|mid_right
+	bottom_left|_|_|bottom_right
+	
+		top_left_index is for loading new values from array (previous layer)
+	
+	*/
+		
+		
 		case TURN:
 		
 			top_left = mid_left;
@@ -88,6 +101,7 @@ void calculate_position(){
 			/* Use each direction *distance* times */
 			for(j = 0; j < distance; j++){
 				
+				/* Work out which action to take according to how close a corner is */
 				if(j == (distance - 1)){
 					status = TURN;
 				} else if (j == (distance - 2)){
@@ -98,15 +112,18 @@ void calculate_position(){
 				
 				move();
 				
+				/* Make sure we have enough space for the next number in array */
 				current_index++;
 				if(current_index > (SIZE * array_num_reallocs)){
 					array_num_reallocs++;
 					array = realloc(array, (SIZE*array_num_reallocs));
 				}
+				/* Store number in array for later */
 				*(array + current_index) = current_number;
 				
 				printf("New number, index %i: %i\n", current_index, current_number);
 				
+				/* Check if number is reached yet */
 				if(current_number >= NUMBER){
 					return;
 				}
@@ -127,20 +144,9 @@ void calculate_position(){
 
 int main (int argc, char *argv[]){
 	
+	/* Start with 256, should be enough */
 	array = malloc(SIZE);
 	array_num_reallocs++;
-	/*
-	*(array + current_index++) = 1;
-	*(array + current_index++) = 1;//R
-	*(array + current_index++) = 2;//U
-	*(array + current_index++) = 4;//L
-	*(array + current_index++) = 5;//L
-	*(array + current_index++) = 10;//D
-	*(array + current_index++) = 11;//D
-	*(array + current_index++) = 23;//R
-	*(array + current_index++) = 25;
-	*(array + current_index++) = 26;
-*/
 	
 	calculate_position();
 	
