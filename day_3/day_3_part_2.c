@@ -1,60 +1,113 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
+#include <stdlib.h>
 
 #define NUMBER 277678
+//#define NUMBER 805
 
 #define R 0
 #define U 1
 #define L 2
 #define D 3
 
+#define REGULAR 0
+#define ONE_BEFORE_TURN 1
+#define TURN 2
+
+#define SIZE 256
+
 const int directions_length = 4;
 int direction_index = 0;
-int32_t distance = 1;
-int32_t x = 0, y = 0;
-int32_t current_number = 1;
+int distance = 1;
+int x = 0, y = 0;
+int current_index = 1;
+int current_number = 1;
 
+int *array;
+int array_num_reallocs = 0;
+
+int top_left = 0;
+int mid_left = 0;
+int mid_right = 0;
+int bottom_left = 0;
+int bottom_right = 0;
+
+int top_left_index = 1;
+
+int status = REGULAR;
 	
 void move(){
-	switch(direction_index){
-		case R:{
-			x++; 
-			//printf("move right\n");
-			break;	
-		} 
-		case U:{
-			y++; 
-			//printf("move up\n");
+	switch(status){
+		case TURN:
+		
+			top_left = mid_left;
+			mid_left = mid_right;
+			bottom_left = 0;
+			bottom_right = 0;
+		
 			break;
-		} 
-		case L: {
-			x--;
-			//printf("move left\n");
+			
+		case ONE_BEFORE_TURN:
+		
+			bottom_left = mid_left;
+			bottom_right = mid_right;
+			mid_left = top_left;
+			top_left = 0;
+		
 			break;
-		} 
-		case D: {
-			y--; 
-			//printf("move down\n");
+			
+		case REGULAR:
+		default:
+		
+			bottom_left = mid_left;
+			bottom_right = mid_right;
+			mid_left = top_left;
+			top_left_index++;
+			top_left = *(array+top_left_index);		
+		
 			break;
-		}
 	}
+	
+	mid_right = top_left + mid_left + bottom_left + bottom_right;
+	
+	current_number = mid_right;
 }
 
 void calculate_position(){
 	/* Use each distance twice */
 	int i;
 	int32_t j;
+	
+	array[current_index] = current_number;
+	mid_right = current_number;
+	
 	while(1){
 		for(i = 0; i < 2; i++){
 			
 			/* Use each direction *distance* times */
 			for(j = 0; j < distance; j++){
-				move();
-				current_number++;
-				//printf("current number is %u\n", current_number);
 				
-				if(current_number == NUMBER){
+				if(j == (distance - 1)){
+					status = TURN;
+				} else if (j == (distance - 2)){
+					status = ONE_BEFORE_TURN;
+				} else {
+					status = REGULAR;
+				}
+				
+				move();
+				
+				current_index++;
+				if(current_index > (SIZE * array_num_reallocs)){
+					array_num_reallocs++;
+					array = realloc(array, (SIZE*array_num_reallocs));
+				}
+				*(array + current_index) = current_number;
+				
+				printf("New number, index %i: %i\n", current_index, current_number);
+				
+				if(current_number >= NUMBER){
 					return;
 				}
 				
@@ -74,10 +127,24 @@ void calculate_position(){
 
 int main (int argc, char *argv[]){
 	
-	calculate_position();
-	int32_t distance = (abs(x) + abs(y));
+	array = malloc(SIZE);
+	array_num_reallocs++;
+	/*
+	*(array + current_index++) = 1;
+	*(array + current_index++) = 1;//R
+	*(array + current_index++) = 2;//U
+	*(array + current_index++) = 4;//L
+	*(array + current_index++) = 5;//L
+	*(array + current_index++) = 10;//D
+	*(array + current_index++) = 11;//D
+	*(array + current_index++) = 23;//R
+	*(array + current_index++) = 25;
+	*(array + current_index++) = 26;
+*/
 	
-	printf("Distance is %i", distance);
+	calculate_position();
+	
+	printf("First value larger is %i", current_number);
 
 	return 0;
 }
