@@ -41,7 +41,7 @@ int main (int argc, char *argv[]){
 	
 	fclose(file);
 	
-	printf("Total sum of repeating digits is %i", sum);
+	printf("Total sum of repeating digits is %i\n", sum);
 	
 	return 0;
 	
