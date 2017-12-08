@@ -102,8 +102,8 @@ int main (int argc, char *argv[]){
 			// not above any others
 			
 			// create new program
-			program_count++;
 			current_program = programs + program_count;
+			program_count++;
 			
 			// copy name
 			strncpy(current_program->name, (const char *)n, 10);
