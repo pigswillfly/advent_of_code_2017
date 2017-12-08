@@ -8,8 +8,8 @@
 #define NAME_SIZE 10
 #define TOTAL_PROGRAMS 1500
 
-const char filename[] = "ex_input_day_7.txt";
-//const char filename[] = "day_7_input.txt";
+//const char filename[] = "ex_input_day_7.txt";
+const char filename[] = "day_7_input.txt";
 
 char string[LINE_STRING_SIZE];
 char *string_pointer = string;
@@ -101,9 +101,64 @@ int find_weight_difference(){
 		}
 	}
 	
-	printf("Highest %i, lowest %i \n", highest, lowest);
+	//printf("Highest %i, lowest %i \n", highest, lowest);
 	
 	return (highest - lowest);
+	
+}
+
+program_t *find_different_weight(program_t *get_my_children){
+	
+	int i, j, n;
+	n = get_my_children->num_children;
+	
+	int same[n];
+	
+	printf("%s %i ", get_my_children->name, get_my_children->num_children);
+	
+	program_t *p = NULL;
+	
+	for(i = 0; i < n; i++){
+		
+		printf("  %s (%i), ", get_my_children->children[i]->name, get_my_children->children[i]->cumulative_weight);
+		same[i] = 0;
+		
+		for(j = 0; j < n; j++){
+			
+			if(i == j) continue;
+			if((get_my_children->children[i]->cumulative_weight) ==
+			(get_my_children->children[j]->cumulative_weight)){
+				same[i]++;
+			}
+		}
+	}
+	printf("\n");
+	for(i = 0; i < n; i++){
+		printf("%i ", same[i]);
+		if(same[i] == 0){
+			p = get_my_children->children[i];
+		}
+	}
+	printf("\n");
+	return p; 
+	
+}
+
+program_t *find_wrong_weight_program(){
+	
+	program_t *p = bottom_program; 
+	program_t *q;
+		
+	do{
+		q = find_different_weight(p);
+		//printf(" different %s\n", q->name);
+		if(q != NULL){
+			p = q;
+		}
+		
+	} while(q != NULL);
+	
+	return p;
 	
 }
 
@@ -209,6 +264,7 @@ int main (int argc, char *argv[]){
 	find_bottom_program();	
 	
 	calculate_cumulative_weights();
+	/*
 	
 	for(i = 0; i < program_count; i++){
 		program_t *p = (programs + i);
@@ -219,10 +275,13 @@ int main (int argc, char *argv[]){
 		}
 		printf("\n");
 	}
+	*/
 	
 	int weight_diff = find_weight_difference();
 	
-	printf("Name of bottom program is: %s", bottom_program->name);
+	program_t *wrong_weight_program = find_wrong_weight_program();
+	
+	printf("Wrong program %s weight %i - %i = %i\n", wrong_weight_program->name, wrong_weight_program->weight,  weight_diff, wrong_weight_program->weight - weight_diff);
 	
 	
 
