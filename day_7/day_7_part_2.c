@@ -8,16 +8,19 @@
 #define NAME_SIZE 10
 #define TOTAL_PROGRAMS 1500
 
-//const char filename[] = "ex_input_day_7.txt";
-const char filename[] = "day_7_input.txt";
+const char filename[] = "ex_input_day_7.txt";
+//const char filename[] = "day_7_input.txt";
 
 char string[LINE_STRING_SIZE];
 char *string_pointer = string;
 
 typedef struct program_t{
 	char name[NAME_SIZE];
-	char below[NAME_SIZE];
+	struct program_t *parent;
 	int weight;
+	int cumulative_weight;
+	int num_children;
+	struct program_t *children[NAME_SIZE];
 }program_t;
 
 program_t *programs;
@@ -38,7 +41,7 @@ void find_bottom_program(){
 	
 	int i,j; 
 	for(i = 0; i<program_count; i++){
-		if(((programs + i)->below[0]) == 0){
+		if((programs + i)->parent == NULL){
 			bottom_program = programs + i;
 		}
 	}
@@ -62,9 +65,28 @@ program_t *get_program(char *n){
 	
 		strncpy(ret_program->name, n, NAME_SIZE);
 		ret_program->weight = 0;
+		ret_program->num_children = 0;
 	}
 	
 	return ret_program;	
+}
+
+void calculate_cumulative_weights(){
+	
+	int i;
+	program_t *tree_search_pointer;
+	for(i = 0; i < program_count; i++){
+		(programs + i)->cumulative_weight = (programs + i)->weight;
+		
+		tree_search_pointer = (programs + i)->parent;
+		do{
+			(programs + i)->cumulative_weight += tree_search_pointer->weight;
+			tree_search_pointer = tree_search_pointer->parent;
+			
+		} while(tree_search_pointer != NULL);
+
+		
+	}
 }
 
 void remove_comma(char *m){
@@ -109,18 +131,20 @@ int main (int argc, char *argv[]){
 		// copy weight to object
 		current_program->weight = w;
 		
-		printf("%s \n", current_program);
-		
 		if(success > 2){
 			// more programs to parse
-			printf("more programs ");
 			
 			// first program name above is already in m
 			remove_comma(m);
-			program_t *program_above = get_program(m);
-			
-			strncpy(program_above->below, current_program->name, NAME_SIZE);
+			program_t *child = get_program(m);
 			for(i = 0; i < 10; i++) m[i] = 0;
+			
+			// assign parent 
+			child->parent = current_program;
+			
+			// assign as child of current program
+			current_program->children[current_program->num_children] = child;
+			current_program->num_children++;
 
 			// count commas for remaining names (one already done)
 			int programs_above = 0;
@@ -130,10 +154,6 @@ int main (int argc, char *argv[]){
 				}
 			}
 			
-			printf("Programs above = %i\n ", (programs_above + 1));
-
-			printf("	%s\n", program_above->name);
-			
 			if(programs_above){ // more than one program above
 				string_pointer = string;
 				
@@ -142,12 +162,16 @@ int main (int argc, char *argv[]){
 					
 					sscanf(string_pointer, "%s", m);
 					
-					remove_comma(m);
-					printf("	%s\n", m);
-					
+					remove_comma(m);	
 					program_above = get_program(m);
-					strncpy(program_above->below, current_program->name, NAME_SIZE);
 					for(i = 0; i < 10; i++) m[i] = 0;
+					
+					// assign parent 
+					child->parent = current_program;
+					
+					// assign as child of current program
+					current_program->children[current_program->num_children] = program_above;
+					current_program->num_children++;
 					
 					programs_above--;
 					
@@ -164,10 +188,16 @@ int main (int argc, char *argv[]){
 	
 	fclose(file);
 	
-	find_bottom_program();
+	find_bottom_program();	
 	
+	calculate_cumulative_weights();
 	
 	printf("Name of bottom program is: %s", bottom_program->name);
+	
+	
+
+	
+	
 	
 	return 0;
 	
