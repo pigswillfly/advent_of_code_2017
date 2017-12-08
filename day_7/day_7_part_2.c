@@ -73,20 +73,38 @@ program_t *get_program(char *n){
 
 void calculate_cumulative_weights(){
 	
-	int i;
-	program_t *tree_search_pointer;
+	program_t *p;
+	int i, w;
 	for(i = 0; i < program_count; i++){
-		(programs + i)->cumulative_weight = (programs + i)->weight;
-		
-		tree_search_pointer = (programs + i)->parent;
+		p = (programs + i);
+		w = p->weight;
 		do{
-			(programs + i)->cumulative_weight += tree_search_pointer->weight;
-			tree_search_pointer = tree_search_pointer->parent;
-			
-		} while(tree_search_pointer != NULL);
-
-		
+			p->cumulative_weight += w;
+			p = p->parent;
+		}while(p != NULL);
 	}
+}
+
+int find_weight_difference(){
+	int i;
+	int weights[bottom_program->num_children];
+	for(i = 0; i < bottom_program->num_children; i++){
+		weights[i] = bottom_program->children[i]->cumulative_weight;	
+	}
+	int highest = weights[0], lowest = weights[0];
+	for(i = 1; i < bottom_program->num_children; i++){
+		if(weights[i] < lowest){
+			lowest = weights[i];
+		}
+		if(weights[i] > highest){
+			highest = weights[i];
+		}
+	}
+	
+	printf("Highest %i, lowest %i \n", highest, lowest);
+	
+	return (highest - lowest);
+	
 }
 
 void remove_comma(char *m){
@@ -163,14 +181,14 @@ int main (int argc, char *argv[]){
 					sscanf(string_pointer, "%s", m);
 					
 					remove_comma(m);	
-					program_above = get_program(m);
+					child = get_program(m);
 					for(i = 0; i < 10; i++) m[i] = 0;
 					
 					// assign parent 
 					child->parent = current_program;
 					
 					// assign as child of current program
-					current_program->children[current_program->num_children] = program_above;
+					current_program->children[current_program->num_children] = child;
 					current_program->num_children++;
 					
 					programs_above--;
@@ -191,6 +209,18 @@ int main (int argc, char *argv[]){
 	find_bottom_program();	
 	
 	calculate_cumulative_weights();
+	
+	for(i = 0; i < program_count; i++){
+		program_t *p = (programs + i);
+		printf("%s (%i)/(%i), parent %s, children ", p->name, p->weight, p->cumulative_weight, p->parent->name);
+		int j;
+		for(j = 0; j < p->num_children; j++){
+			printf("%s ", p->children[j]->name);
+		}
+		printf("\n");
+	}
+	
+	int weight_diff = find_weight_difference();
 	
 	printf("Name of bottom program is: %s", bottom_program->name);
 	
